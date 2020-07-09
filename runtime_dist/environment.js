@@ -19,11 +19,9 @@ function detectLibraryProvider(importObject) {
                 item.wasmLibraryProvider.start(inst);
             },
         };
-    }
-    else if (importObject["imports"] && importObject["start"] !== undefined) {
+    } else if (importObject["imports"] && importObject["start"] !== undefined) {
         return importObject;
-    }
-    else if (importObject["wasiImport"] && importObject["start"] !== undefined) {
+    } else if (importObject["wasiImport"] && importObject["start"] !== undefined) {
         // WASI
         return {
             imports: {
@@ -33,8 +31,7 @@ function detectLibraryProvider(importObject) {
                 importObject["start"](inst);
             }
         };
-    }
-    else {
+    } else {
         return undefined;
     }
 }
@@ -43,33 +40,32 @@ function detectLibraryProvider(importObject) {
  */
 class Environment {
     constructor(importObject = {}, logger = console.log) {
-        /**
-         * Maintains a table of FTVMWasmPackedCFunc that the C part
-         * can call via TVMWasmPackedCFunc.
-         *
-         * We maintain a separate table so that we can have un-limited amount
-         * of functions that do not maps to the address space.
-         */
-        this.packedCFuncTable = [
-            undefined,
-        ];
-        /**
-         * Free table index that can be recycled.
-         */
-        this.packedCFuncTableFreeId = [];
-        this.logger = logger;
-        this.libProvider = detectLibraryProvider(importObject);
-        // get imports from the provider
-        if (this.libProvider !== undefined) {
-            this.imports = this.libProvider.imports;
+            /**
+             * Maintains a table of FLREWasmPackedCFunc that the C part
+             * can call via LREWasmPackedCFunc.
+             *
+             * We maintain a separate table so that we can have un-limited amount
+             * of functions that do not maps to the address space.
+             */
+            this.packedCFuncTable = [
+                undefined,
+            ];
+            /**
+             * Free table index that can be recycled.
+             */
+            this.packedCFuncTableFreeId = [];
+            this.logger = logger;
+            this.libProvider = detectLibraryProvider(importObject);
+            // get imports from the provider
+            if (this.libProvider !== undefined) {
+                this.imports = this.libProvider.imports;
+            } else {
+                this.imports = importObject;
+            }
+            // update with more functions
+            this.imports.env = this.environment(this.imports.env);
         }
-        else {
-            this.imports = importObject;
-        }
-        // update with more functions
-        this.imports.env = this.environment(this.imports.env);
-    }
-    /** Mark the start of the instance. */
+        /** Mark the start of the instance. */
     start(inst) {
         if (this.libProvider !== undefined) {
             this.libProvider.start(inst);
@@ -78,9 +74,9 @@ class Environment {
     environment(initEnv) {
         // default env can be be overriden by libraries.
         const defaultEnv = {
-            "__cxa_thread_atexit": () => { },
+            "__cxa_thread_atexit": () => {},
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            "emscripten_notify_memory_growth": (index) => { }
+            "emscripten_notify_memory_growth": (index) => {}
         };
         const wasmPackedCFunc = (args, typeCodes, nargs, ret, resourceHandle) => {
             const cfunc = this.packedCFuncTable[resourceHandle];
@@ -92,8 +88,8 @@ class Environment {
             this.packedCFuncTableFreeId.push(resourceHandle);
         };
         const newEnv = {
-            TVMWasmPackedCFunc: wasmPackedCFunc,
-            TVMWasmPackedCFuncFinalizer: wasmPackedCFuncFinalizer,
+            LREWasmPackedCFunc: wasmPackedCFunc,
+            LREWasmPackedCFuncFinalizer: wasmPackedCFuncFinalizer,
             "__console_log": (msg) => {
                 this.logger(msg);
             }

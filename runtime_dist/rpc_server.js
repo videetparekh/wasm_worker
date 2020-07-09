@@ -17,11 +17,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
+var __awaiter = (this && this.__awaiter) || function(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function(resolve) { resolve(value); }); }
+    return new(P || (P = Promise))(function(resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+
         function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
@@ -33,7 +35,7 @@ const webgpu_1 = require("./webgpu");
 const compact = require("./compact");
 const runtime = require("./runtime");
 var RPCServerState;
-(function (RPCServerState) {
+(function(RPCServerState) {
     RPCServerState[RPCServerState["InitHeader"] = 0] = "InitHeader";
     RPCServerState[RPCServerState["InitHeaderKey"] = 1] = "InitHeaderKey";
     RPCServerState[RPCServerState["InitServer"] = 2] = "InitServer";
@@ -77,153 +79,155 @@ class ByteStreamReader {
  */
 class RPCServer {
     constructor(url, key, getImports, logger = console.log) {
-        this.state = RPCServerState.InitHeader;
-        this.pendingSend = Promise.resolve();
-        this.inst = undefined;
-        this.currPacketLength = 0;
-        this.remoteKeyLength = 0;
-        this.pendingBytes = 0;
-        this.buffredBytes = 0;
-        this.messageQueue = [];
-        this.url = url;
-        this.key = key;
-        this.name = "WebSocketRPCServer[" + this.key + "]: ";
-        this.getImports = getImports;
-        this.logger = logger;
-        this.checkLittleEndian();
-        this.socket = compact.createWebSocket(url);
-        this.socket.binaryType = "arraybuffer";
-        this.socket.addEventListener("open", (event) => {
-            return this.onOpen(event);
-        });
-        this.socket.addEventListener("message", (event) => {
-            return this.onMessage(event);
-        });
-        this.socket.addEventListener("close", (event) => {
-            return this.onClose(event);
-        });
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            this.state = RPCServerState.InitHeader;
+            this.pendingSend = Promise.resolve();
+            this.inst = undefined;
+            this.currPacketLength = 0;
+            this.remoteKeyLength = 0;
+            this.pendingBytes = 0;
+            this.buffredBytes = 0;
+            this.messageQueue = [];
+            this.url = url;
+            this.key = key;
+            this.name = "WebSocketRPCServer[" + this.key + "]: ";
+            this.getImports = getImports;
+            this.logger = logger;
+            this.checkLittleEndian();
+            this.socket = compact.createWebSocket(url);
+            this.socket.binaryType = "arraybuffer";
+            this.socket.addEventListener("open", (event) => {
+                return this.onOpen(event);
+            });
+            this.socket.addEventListener("message", (event) => {
+                return this.onMessage(event);
+            });
+            this.socket.addEventListener("close", (event) => {
+                return this.onClose(event);
+            });
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onClose(_event) {
-        if (this.inst !== undefined) {
-            this.inst.dispose();
+            if (this.inst !== undefined) {
+                this.inst.dispose();
+            }
+            if (this.state == RPCServerState.ReceivePacketHeader) {
+                this.log("Closing the server in clean state");
+                this.log("Automatic reconnecting..");
+                new RPCServer(this.url, this.key, this.getImports, this.logger);
+            } else {
+                this.log("Closing the server, final state=" + this.state);
+            }
         }
-        if (this.state == RPCServerState.ReceivePacketHeader) {
-            this.log("Closing the server in clean state");
-            this.log("Automatic reconnecting..");
-            new RPCServer(this.url, this.key, this.getImports, this.logger);
-        }
-        else {
-            this.log("Closing the server, final state=" + this.state);
-        }
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onOpen(_event) {
-        // Send the headers
-        let bkey = support_1.StringToUint8Array("server:" + this.key);
-        bkey = bkey.slice(0, bkey.length - 1);
-        const intbuf = new Int32Array(1);
-        intbuf[0] = RPC_MAGIC;
-        this.socket.send(intbuf);
-        intbuf[0] = bkey.length;
-        this.socket.send(intbuf);
-        this.socket.send(bkey);
-        this.log("connected...");
-        // request bytes: magic + keylen
-        this.requestBytes(4 /* I32 */ + 4 /* I32 */);
-        this.state = RPCServerState.InitHeader;
-    }
-    /** Handler for raw message. */
-    onMessage(event) {
-        const buffer = event.data;
-        this.buffredBytes += buffer.byteLength;
-        this.messageQueue.push(new Uint8Array(buffer));
-        this.processEvents();
-    }
-    /** Process ready events. */
-    processEvents() {
-        while (this.buffredBytes >= this.pendingBytes && this.pendingBytes != 0) {
-            this.onDataReady();
+            // Send the headers
+            let bkey = support_1.StringToUint8Array("server:" + this.key);
+            bkey = bkey.slice(0, bkey.length - 1);
+            const intbuf = new Int32Array(1);
+            intbuf[0] = RPC_MAGIC;
+            this.socket.send(intbuf);
+            intbuf[0] = bkey.length;
+            this.socket.send(intbuf);
+            this.socket.send(bkey);
+            this.log("connected...");
+            // request bytes: magic + keylen
+            this.requestBytes(4 /* I32 */ + 4 /* I32 */ );
+            this.state = RPCServerState.InitHeader;
         }
-    }
-    /** State machine to handle each request */
+        /** Handler for raw message. */
+    onMessage(event) {
+            const buffer = event.data;
+            this.buffredBytes += buffer.byteLength;
+            this.messageQueue.push(new Uint8Array(buffer));
+            this.processEvents();
+        }
+        /** Process ready events. */
+    processEvents() {
+            while (this.buffredBytes >= this.pendingBytes && this.pendingBytes != 0) {
+                this.onDataReady();
+            }
+        }
+        /** State machine to handle each request */
     onDataReady() {
         switch (this.state) {
-            case RPCServerState.InitHeader: {
-                this.handleInitHeader();
-                break;
-            }
-            case RPCServerState.InitHeaderKey: {
-                this.handleInitHeaderKey();
-                break;
-            }
-            case RPCServerState.ReceivePacketHeader: {
-                this.currPacketHeader = this.readFromBuffer(8 /* I64 */);
-                const reader = new ByteStreamReader(this.currPacketHeader);
-                this.currPacketLength = reader.readU64();
-                support_1.assert(this.pendingBytes == 0);
-                this.requestBytes(this.currPacketLength);
-                this.state = RPCServerState.ReceivePacketBody;
-                break;
-            }
-            case RPCServerState.ReceivePacketBody: {
-                const body = this.readFromBuffer(this.currPacketLength);
-                support_1.assert(this.pendingBytes == 0);
-                support_1.assert(this.currPacketHeader !== undefined);
-                this.onPacketReady(this.currPacketHeader, body);
-                break;
-            }
-            case RPCServerState.WaitForCallback: {
-                support_1.assert(this.pendingBytes == 0);
-                break;
-            }
-            default: {
-                throw new Error("Cannot handle state " + this.state);
-            }
+            case RPCServerState.InitHeader:
+                {
+                    this.handleInitHeader();
+                    break;
+                }
+            case RPCServerState.InitHeaderKey:
+                {
+                    this.handleInitHeaderKey();
+                    break;
+                }
+            case RPCServerState.ReceivePacketHeader:
+                {
+                    this.currPacketHeader = this.readFromBuffer(8 /* I64 */ );
+                    const reader = new ByteStreamReader(this.currPacketHeader);
+                    this.currPacketLength = reader.readU64();
+                    support_1.assert(this.pendingBytes == 0);
+                    this.requestBytes(this.currPacketLength);
+                    this.state = RPCServerState.ReceivePacketBody;
+                    break;
+                }
+            case RPCServerState.ReceivePacketBody:
+                {
+                    const body = this.readFromBuffer(this.currPacketLength);
+                    support_1.assert(this.pendingBytes == 0);
+                    support_1.assert(this.currPacketHeader !== undefined);
+                    this.onPacketReady(this.currPacketHeader, body);
+                    break;
+                }
+            case RPCServerState.WaitForCallback:
+                {
+                    support_1.assert(this.pendingBytes == 0);
+                    break;
+                }
+            default:
+                {
+                    throw new Error("Cannot handle state " + this.state);
+                }
         }
     }
     onPacketReady(header, body) {
-        if (this.inst === undefined) {
-            // initialize server.
-            const reader = new ByteStreamReader(body);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const code = reader.readU32();
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const ver = support_1.Uint8ArrayToString(reader.readByteArray());
-            const nargs = reader.readU32();
-            const tcodes = [];
-            const args = [];
-            for (let i = 0; i < nargs; ++i) {
-                tcodes.push(reader.readU32());
+            if (this.inst === undefined) {
+                // initialize server.
+                const reader = new ByteStreamReader(body);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const code = reader.readU32();
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const ver = support_1.Uint8ArrayToString(reader.readByteArray());
+                const nargs = reader.readU32();
+                const tcodes = [];
+                const args = [];
+                for (let i = 0; i < nargs; ++i) {
+                    tcodes.push(reader.readU32());
+                }
+                for (let i = 0; i < nargs; ++i) {
+                    const tcode = tcodes[i];
+                    if (tcode == 11 /* LREStr */ ) {
+                        const str = support_1.Uint8ArrayToString(reader.readByteArray());
+                        args.push(str);
+                    } else if (tcode == 12 /* LREBytes */ ) {
+                        args.push(reader.readByteArray());
+                    } else {
+                        throw new Error("cannot support type code " + tcode);
+                    }
+                }
+                this.onInitServer(args, header, body);
+            } else {
+                support_1.assert(this.serverRecvData !== undefined);
+                this.serverRecvData(header, body);
+                this.requestBytes(8 /* I64 */ );
+                this.state = RPCServerState.ReceivePacketHeader;
             }
-            for (let i = 0; i < nargs; ++i) {
-                const tcode = tcodes[i];
-                if (tcode == 11 /* TVMStr */) {
-                    const str = support_1.Uint8ArrayToString(reader.readByteArray());
-                    args.push(str);
-                }
-                else if (tcode == 12 /* TVMBytes */) {
-                    args.push(reader.readByteArray());
-                }
-                else {
-                    throw new Error("cannot support type code " + tcode);
-                }
-            }
-            this.onInitServer(args, header, body);
         }
-        else {
-            support_1.assert(this.serverRecvData !== undefined);
-            this.serverRecvData(header, body);
-            this.requestBytes(8 /* I64 */);
-            this.state = RPCServerState.ReceivePacketHeader;
-        }
-    }
-    /** Event handler during server initialization. */
+        /** Event handler during server initialization. */
     onInitServer(args, header, body) {
         // start the server
         support_1.assert(args[0] == "rpc.WasmSession");
         support_1.assert(this.pendingBytes == 0);
-        const asyncInitServer = () => __awaiter(this, void 0, void 0, function* () {
+        const asyncInitServer = () => __awaiter(this, void 0, void 0, function*() {
             var _a;
             support_1.assert(args[1] instanceof Uint8Array);
             const inst = yield runtime.instantiate(args[1].buffer, this.getImports(), this.logger);
@@ -234,8 +238,7 @@ class RPCServer {
                     this.log("Initialize GPU device: " + label);
                     inst.initWebGPU(gpuDevice);
                 }
-            }
-            catch (err) {
+            } catch (err) {
                 this.log("Cannnot initialize WebGPU, " + err.toString());
             }
             this.inst = inst;
@@ -246,7 +249,7 @@ class RPCServer {
                     // WebSocket will automatically close the socket
                     // if we burst send data that exceeds its internal buffer
                     // wait a bit before we send next one.
-                    const sendDataWithCongestionControl = () => __awaiter(this, void 0, void 0, function* () {
+                    const sendDataWithCongestionControl = () => __awaiter(this, void 0, void 0, function*() {
                         const packetSize = 4 << 10;
                         const maxBufferAmount = 4 * packetSize;
                         const waitTimeMs = 20;
@@ -262,8 +265,7 @@ class RPCServer {
                     this.pendingSend = this.pendingSend.then(sendDataWithCongestionControl);
                     // Directly return since the data are "sent" from the caller's pov.
                     return this.inst.scalar(cbytes.length, "int32");
-                }
-                else {
+                } else {
                     return this.inst.scalar(0, "int32");
                 }
             }, this.name, this.key);
@@ -286,16 +288,16 @@ class RPCServer {
             flocal.dispose();
             support_1.assert(localSession instanceof runtime.Module);
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            this.inst.registerFunc("rpc.WasmSession", 
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            (_args) => {
-                return localSession;
-            });
+            this.inst.registerFunc("rpc.WasmSession",
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                (_args) => {
+                    return localSession;
+                });
             messageHandler(header, writeFlag);
             messageHandler(body, writeFlag);
             localSession.dispose();
             this.log("Finish initializing the Wasm Server..");
-            this.requestBytes(8 /* I64 */);
+            this.requestBytes(8 /* I64 */ );
             this.state = RPCServerState.ReceivePacketHeader;
             // call process events in case there are bufferred data.
             this.processEvents();
@@ -311,8 +313,7 @@ class RPCServer {
         const magic = reader.readU32();
         if (magic == RPC_MAGIC + 1) {
             throw new Error("key: " + this.key + " has already been used in proxy");
-        }
-        else if (magic == RPC_MAGIC + 2) {
+        } else if (magic == RPC_MAGIC + 2) {
             throw new Error("RPCProxy do not have matching client key " + this.key);
         }
         support_1.assert(magic == RPC_MAGIC, this.url + " is not an RPC Proxy");
@@ -325,7 +326,7 @@ class RPCServer {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const remoteKey = support_1.Uint8ArrayToString(this.readFromBuffer(this.remoteKeyLength));
         support_1.assert(this.pendingBytes == 0);
-        this.requestBytes(8 /* I64 */);
+        this.requestBytes(8 /* I64 */ );
         this.state = RPCServerState.ReceivePacketHeader;
     }
     checkLittleEndian() {
@@ -351,8 +352,7 @@ class RPCServer {
                 const buffer = this.messageQueue.shift();
                 ret.set(buffer, ptr);
                 ptr += buffer.byteLength;
-            }
-            else {
+            } else {
                 const buffer = this.messageQueue[0];
                 ret.set(buffer.slice(0, nleft), ptr);
                 this.messageQueue[0] = buffer.slice(nleft, buffer.byteLength);
