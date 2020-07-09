@@ -1,0 +1,32 @@
+{
+    "name": "wasm_worker",
+    "version": "1.0.0",
+    "description": "A template for kick starting a Cloudflare Workers + Emscripten + Wasm project",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "format": "prettier --write '**/*.{js,css,json,md}'"
+    },
+    "prettier": {
+        "singleQuote": true,
+        "semi": false,
+        "tabWidth": 2,
+        "trailingComma": "all",
+        "printWidth": 80
+    },
+    "author": "Videet Parekh <videetparekh@latentai.com>",
+    "license": "MIT",
+    "devDependencies": {
+        "copy-webpack-plugin": "^5.0.3",
+        "exports-loader": "^0.7.0",
+        "shelljs": "^0.8.3"
+    },
+    "dependencies": {
+        "jpeg-js": "^0.4.0",
+        "perf_hooks": "0.0.1",
+        "performance-now": "^2.1.0",
+        "pngjs": "^5.0.0",
+        "string-to-stream": "^3.0.1",
+        "ws": "^7.3.0"
+    }
+}
