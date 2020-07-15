@@ -1,5 +1,4 @@
 // import the emscripten glue code
-import emscripten from './build/module.js'
 import { PNG } from "pngjs/browser"
 import str from 'string-to-stream'
 var jpeg = require('jpeg-js')
@@ -86,7 +85,7 @@ async function handleRequest({ request }) {
             //
             // Load Runtime - Needs to be updated to support loading TVM correctly!!!!! 
             //
-            var [classifier, loadtime] = await runtime.tvmSetup(modelInfo) // Multiple Inference - Single Load
+            var [classifier, loadtime] = await runtime.lreSetup(modelInfo) // Multiple Inference - Single Load
 
             //
             //

@@ -10,3 +10,6 @@ dist/
 build/
 emscripten.*
 .cargo-ok
+**/.DS_Store
+.prettierignore
+src/

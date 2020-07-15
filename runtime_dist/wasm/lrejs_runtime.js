@@ -52,7 +52,7 @@ if (ENVIRONMENT_IS_NODE) {
         scriptDirectory = __dirname + "/"
     }
     read_ = function shell_read(filename, binary) {
-        if (!nodeFS) nodeFS = require("fs");
+        // if (!nodeFS) nodeFS = require("fs");
         if (!nodePath) nodePath = require("path");
         filename = nodePath["normalize"](filename);
         return nodeFS["readFileSync"](filename, binary ? null : "utf8")

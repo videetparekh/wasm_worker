@@ -1,8 +1,9 @@
 const path = require("path");
 const now = require("performance-now");
+import emscripten from '../build/module.js'
 
 module.exports = {
-    tvmSetup: async function(modelInfo) {
+    lreSetup: async function(modelInfo) {
 
         // this is where the magic happens
         // we send our own instantiateWasm function
@@ -52,60 +53,59 @@ module.exports = {
         delete temp['leip']
         const graphJson = JSON.stringify(temp)
             // console.log(await (await fetch(modelInfo["base"] + modelInfo["params"])).text())
-        const paramsBinary = await new Uint8Array(await (await fetch(modelInfo["base"] + modelInfo["params"])).arrayBuffer())
-        console.log(paramsBinary)
+        const paramsBinary = new Uint8Array(await (await fetch(modelInfo["base"] + modelInfo["params"])).arrayBuffer())
         loadtime[1] = now() - start
 
         // TVM Loader WASM and create Runtime
         start = now()
-        const tvmjs = require("../runtime_dist");
-        const wasmPath = tvmjs.wasmPath();
+        const lrejs = require("../runtime_dist");
+        const wasmPath = lrejs.wasmPath();
         // delete require.cache[require.resolve(path.join(wasmPath, "tvmjs_runtime.wasi.js"))]
-        const EmccWASI = require("../runtime_dist/wasm/tvmjs_runtime.wasi.js");
+        const EmccWASI = require("../runtime_dist/wasm/lrejs_runtime.wasi.js");
         var WasiObj = new EmccWASI()
+        console.log(WasiObj)
         if (modelInfo["input_type"] == "uint8" || modelInfo["input_type"] == "int8") {
             WasiObj['Module']['wasmLibraryProvider']['imports']['env']['roundf'] = Math.round
         }
+        console.log("here")
+            // emscripten({
+            //     instantiateWasm(receive) {
+            //         let instance = new WebAssembly.Instance(wasm, WasiObj)
+            //         receive(instance)
+            //         return instance.exports
+            //     },
+            // }).then(lre => {
+            //     ctx = lre.cpu(0)
+            //     const sysLib = lre.systemLib()
+            //     const executor = lre.createGraphRuntime(graphJson, sysLib, ctx)
+            //     loadtime[0] = now() - start
 
-        emscripten({
-            instantiateWasm(info, receive) {
-                let instance = new WebAssembly.Instance(wasm, WasiObj)
-                receive(instance)
-                return instance.exports
-            },
-        }).then(tvm => {
-            ctx = tvm.cpu(0)
-            const sysLib = tvm.systemLib()
-                // console.log(sysLib)
-            const executor = tvm.createGraphRuntime(graphJson, sysLib, ctx)
-            loadtime[0] = now() - start
+        //     // Populate weights into graph
+        //     start = now()
+        //     executor.loadParams(paramsBinary)
+        //     const inputData = lre.empty(modelInfo["input_shape"], modelInfo["input_type"], lre.cpu());
+        //     const outputData = lre.empty(modelInfo["output_shape"], modelInfo["input_type"], lre.cpu());
+        //     const outputGPU = executor.getOutput(0);
 
-            // Populate weights into graph
-            start = now()
-            executor.loadParams(paramsBinary)
-            const inputData = tvm.empty(modelInfo["input_shape"], modelInfo["input_type"], tvm.cpu());
-            const outputData = tvm.empty(modelInfo["output_shape"], modelInfo["input_type"], tvm.cpu());
-            const outputGPU = executor.getOutput(0);
+        //     classifier = {}
 
-            classifier = {}
-
-            classifier.classify = async(imageData) => {
-                inputData.copyFrom(imageData);
-                // console.log(inputData)
-                executor.setInput(modelInfo["input_name"], inputData);
-                executor.run();
-                outputData.copyFrom(outputGPU);
-                const sortedIndex = Array.from(outputData.toArray())
-                    .map((value, index) => [value, index])
-                    .sort(([a], [b]) => b - a)
-                    .map(([, index]) => index);
-                // for (let i = 0; i < 5; ++i) {
-                //     console.log("Top-" + (i + 1) + " " + synset[sortedIndex[i]]);
-                // }
-                return sortedIndex[0];
-            }
-            loadtime[2] = now() - start
-            resolve([classifier, loadtime]);
-        })
+        //     classifier.classify = async(imageData) => {
+        //         inputData.copyFrom(imageData);
+        //         // console.log(inputData)
+        //         executor.setInput(modelInfo["input_name"], inputData);
+        //         executor.run();
+        //         outputData.copyFrom(outputGPU);
+        //         const sortedIndex = Array.from(outputData.toArray())
+        //             .map((value, index) => [value, index])
+        //             .sort(([a], [b]) => b - a)
+        //             .map(([, index]) => index);
+        //         // for (let i = 0; i < 5; ++i) {
+        //         //     console.log("Top-" + (i + 1) + " " + synset[sortedIndex[i]]);
+        //         // }
+        //         return sortedIndex[0];
+        //     }
+        //     loadtime[2] = now() - start
+        //     resolve([classifier, loadtime]);
+        // })
     }
 }
