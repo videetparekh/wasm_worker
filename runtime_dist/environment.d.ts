@@ -7,13 +7,13 @@ export declare class Environment implements LibraryProvider {
     logger: (msg: string) => void;
     imports: Record<string, any>;
     /**
-     * Maintains a table of FLREWasmPackedCFunc that the C part
-     * can call via LREWasmPackedCFunc.
+     * Maintains a table of FTVMWasmPackedCFunc that the C part
+     * can call via TVMWasmPackedCFunc.
      *
      * We maintain a separate table so that we can have un-limited amount
      * of functions that do not maps to the address space.
      */
-    packedCFuncTable: Array<ctypes.FLREWasmPackedCFunc | undefined>;
+    packedCFuncTable: Array<ctypes.FTVMWasmPackedCFunc | undefined>;
     /**
      * Free table index that can be recycled.
      */

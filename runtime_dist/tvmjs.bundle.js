@@ -1,7 +1,7 @@
 (function(global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('ws')) :
         typeof define === 'function' && define.amd ? define(['exports', 'ws'], factory) :
-        (global = global || self, factory(global.lrejs = {}, global.ws));
+        (global = global || self, factory(global.tvmjs = {}, global.ws));
 }(this, (function(exports, ws) {
     'use strict';
 
@@ -194,11 +194,11 @@
                     return result;
                 }
                 /**
-                 * Load LREByteArray from ptr.
+                 * Load TVMByteArray from ptr.
                  *
                  * @param ptr The address of the header.
                  */
-            loadLREBytes(ptr) {
+            loadTVMBytes(ptr) {
                     const data = this.loadPointer(ptr);
                     const length = this.loadUSize(ptr + this.sizeofPtr());
                     return this.loadRawBytes(data, length);
@@ -397,7 +397,7 @@
                     this.addressToSetTargetValue.push([offset, strOffset]);
                 }
                 /**
-                 * Allocate then set the argument location with a LREByteArray.
+                 * Allocate then set the argument location with a TVMByteArray.
                  * Allocate new temporary space for bytes.
                  *
                  * @param offset The offset to set ot data pointer.
@@ -473,8 +473,8 @@
         class Environment {
             constructor(importObject = {}, logger = console.log) {
                     /**
-                     * Maintains a table of FLREWasmPackedCFunc that the C part
-                     * can call via LREWasmPackedCFunc.
+                     * Maintains a table of FTVMWasmPackedCFunc that the C part
+                     * can call via TVMWasmPackedCFunc.
                      *
                      * We maintain a separate table so that we can have un-limited amount
                      * of functions that do not maps to the address space.
@@ -520,8 +520,8 @@
                     this.packedCFuncTableFreeId.push(resourceHandle);
                 };
                 const newEnv = {
-                    LREWasmPackedCFunc: wasmPackedCFunc,
-                    LREWasmPackedCFuncFinalizer: wasmPackedCFuncFinalizer,
+                    TVMWasmPackedCFunc: wasmPackedCFunc,
+                    TVMWasmPackedCFuncFinalizer: wasmPackedCFuncFinalizer,
                     "__console_log": (msg) => {
                         this.logger(msg);
                     }
@@ -926,22 +926,22 @@
             checkCall(code) {
                 if (code != 0) {
                     const msgPtr = this.exports
-                        .LREGetLastError();
-                    throw new Error("LREError: " + this.memory.loadCString(msgPtr));
+                        .TVMGetLastError();
+                    throw new Error("TVMError: " + this.memory.loadCString(msgPtr));
                 }
             }
             getOrAllocCallStack() {
                 if (this.recycledCallStacks.length != 0) {
                     return this.recycledCallStacks.pop();
                 }
-                return new memory.CachedCallStack(this.memory, this.exports.LREWasmAllocSpace, this.exports.LREWasmFreeSpace);
+                return new memory.CachedCallStack(this.memory, this.exports.TVMWasmAllocSpace, this.exports.TVMWasmFreeSpace);
             }
             recycleCallStack(callstack) {
                 callstack.reset();
                 this.recycledCallStacks.push(callstack);
             }
             validateInstance() {
-                this.checkExports(["LREWasmAllocSpace", "LREWasmFreeSpace", "LREFuncFree"]);
+                this.checkExports(["TVMWasmAllocSpace", "TVMWasmFreeSpace", "TVMFuncFree"]);
             }
             checkExports(funcNames) {
                 const missList = [];
@@ -989,7 +989,7 @@
             }
             dispose() {
                 if (this.handle != 0) {
-                    this.lib.checkCall(this.lib.exports.LREFuncFree(this.handle));
+                    this.lib.checkCall(this.lib.exports.TVMFuncFree(this.handle));
                     this.handle = 0;
                 }
             }
@@ -1125,7 +1125,7 @@
             }
             dispose() {
                     if (this.handle != 0 && !this.isView) {
-                        this.lib.checkCall(this.lib.exports.LREArrayFree(this.handle));
+                        this.lib.checkCall(this.lib.exports.TVMArrayFree(this.handle));
                         this.handle = 0;
                     }
                 }
@@ -1138,7 +1138,7 @@
                  */
             copyFrom(data) {
                     if (data instanceof NDArray) {
-                        this.lib.checkCall(this.lib.exports.LREArrayCopyFromTo(data.handle, this.handle, 0));
+                        this.lib.checkCall(this.lib.exports.TVMArrayCopyFromTo(data.handle, this.handle, 0));
                         return this;
                     } else {
                         const size = this.shape.reduce((a, b) => {
@@ -1184,7 +1184,7 @@
                     const tempOffset = stack.allocRawBytes(nbytes);
                     const tempPtr = stack.ptrFromOffset(tempOffset);
                     this.lib.memory.storeRawBytes(tempPtr, data);
-                    this.lib.checkCall(this.lib.exports.LREArrayCopyFromBytes(this.handle, tempPtr, nbytes));
+                    this.lib.checkCall(this.lib.exports.TVMArrayCopyFromBytes(this.handle, tempPtr, nbytes));
                     this.lib.recycleCallStack(stack);
                     return this;
                 }
@@ -1203,7 +1203,7 @@
                     const stack = this.lib.getOrAllocCallStack();
                     const tempOffset = stack.allocRawBytes(nbytes);
                     const tempPtr = stack.ptrFromOffset(tempOffset);
-                    this.lib.checkCall(this.lib.exports.LREArrayCopyToBytes(this.handle, tempPtr, nbytes));
+                    this.lib.checkCall(this.lib.exports.TVMArrayCopyToBytes(this.handle, tempPtr, nbytes));
                     const ret = this.lib.memory.loadRawBytes(tempPtr, nbytes);
                     this.lib.recycleCallStack(stack);
                     return ret;
@@ -1247,7 +1247,7 @@
             }
             dispose() {
                     if (this.handle != 0) {
-                        this.lib.checkCall(this.lib.exports.LREModFree(this.handle));
+                        this.lib.checkCall(this.lib.exports.TVMModFree(this.handle));
                         this.handle = 0;
                     }
                 }
@@ -1263,7 +1263,7 @@
                     const outOffset = stack.allocPtrArray(1);
                     const outPtr = stack.ptrFromOffset(outOffset);
                     stack.commitToWasmMemory(outOffset);
-                    this.lib.checkCall(this.lib.exports.LREModGetFunction(this.handle, stack.ptrFromOffset(nameOffset), 1, outPtr));
+                    this.lib.checkCall(this.lib.exports.TVMModGetFunction(this.handle, stack.ptrFromOffset(nameOffset), 1, outPtr));
                     const handle = this.lib.memory.loadPointer(outPtr);
                     this.lib.recycleCallStack(stack);
                     if (handle == 0) {
@@ -1277,14 +1277,14 @@
                  * @param mod The module to be imported.
                  */
             importModule(mod) {
-                this.lib.checkCall(this.lib.exports.LREModImport(this.handle, mod.handle));
+                this.lib.checkCall(this.lib.exports.TVMModImport(this.handle, mod.handle));
             }
         }
         exports.Module = Module;
         /**
          *  Graph runtime.
          *
-         *  This is a thin wrapper of the underlying LRE module.
+         *  This is a thin wrapper of the underlying TVM module.
          *  you can also directly call set_input, run, and get_output
          *  of underlying module functions
          */
@@ -1372,7 +1372,7 @@
             }
         }
         /**
-         * LRE runtime instance.
+         * TVM runtime instance.
          */
         class Instance {
             /**
@@ -1426,7 +1426,7 @@
                     const outSizeOffset = stack.allocPtrArray(2);
                     const outSizePtr = stack.ptrFromOffset(outSizeOffset);
                     const outArrayPtr = stack.ptrFromOffset(outSizeOffset + this.lib.sizeofPtr());
-                    this.lib.checkCall(this.exports.LREFuncListGlobalNames(outSizePtr, outArrayPtr));
+                    this.lib.checkCall(this.exports.TVMFuncListGlobalNames(outSizePtr, outArrayPtr));
                     const size = this.memory.loadI32(outSizePtr);
                     const array = this.memory.loadPointer(outArrayPtr);
                     const names = [];
@@ -1437,7 +1437,7 @@
                     return names;
                 }
                 /**
-                 * Register function to be global function in lre runtime.
+                 * Register function to be global function in tvm runtime.
                  * @param name The name of the function.
                  * @param f function to be registered.
                  * @param override Whether overwrite function in existing registry.
@@ -1449,7 +1449,7 @@
                     const nameOffset = stack.allocRawBytes(name.length + 1);
                     stack.storeRawBytes(nameOffset, support.StringToUint8Array(name));
                     stack.commitToWasmMemory();
-                    this.lib.checkCall(this.lib.exports.LREFuncRegisterGlobal(stack.ptrFromOffset(nameOffset), packedFunc._lrePackedCell.handle, ioverride));
+                    this.lib.checkCall(this.lib.exports.TVMFuncRegisterGlobal(stack.ptrFromOffset(nameOffset), packedFunc._tvmPackedCell.handle, ioverride));
                 }
                 /**
                  * Get global PackedFunc from the runtime.
@@ -1463,7 +1463,7 @@
                     const outOffset = stack.allocPtrArray(1);
                     const outPtr = stack.ptrFromOffset(outOffset);
                     stack.commitToWasmMemory(outOffset);
-                    this.lib.checkCall(this.exports.LREFuncGetGlobal(stack.ptrFromOffset(nameOffset), outPtr));
+                    this.lib.checkCall(this.exports.TVMFuncGetGlobal(stack.ptrFromOffset(nameOffset), outPtr));
                     const handle = this.memory.loadPointer(outPtr);
                     this.lib.recycleCallStack(stack);
                     if (handle == 0) {
@@ -1480,7 +1480,7 @@
                  */
             isPackedFunc(func) {
                     // eslint-disable-next-line no-prototype-builtins
-                    return typeof func == "function" && func.hasOwnProperty("_lrePackedCell");
+                    return typeof func == "function" && func.hasOwnProperty("_tvmPackedCell");
                 }
                 /**
                  * Convert func to PackedFunc
@@ -1517,7 +1517,7 @@
                             code = 1 /* UInt */ ;
                         } else if (pattern.substring(0, 6) == "handle") {
                             pattern = pattern.substring(5, pattern.length);
-                            code = 3 /* LREOpaqueHandle */ ;
+                            code = 3 /* TVMOpaqueHandle */ ;
                             bits = 64;
                         } else {
                             throw new Error("Unknown dtype " + dtype);
@@ -1588,7 +1588,7 @@
                     const outOffset = stack.allocPtrArray(1);
                     const outPtr = stack.ptrFromOffset(outOffset);
                     stack.commitToWasmMemory(outOffset);
-                    this.lib.checkCall(this.exports.LREArrayAlloc(stack.ptrFromOffset(shapeOffset), shape.length, dtype.code, dtype.bits, dtype.lanes, ctx.deviceType, ctx.deviceId, outPtr));
+                    this.lib.checkCall(this.exports.TVMArrayAlloc(stack.ptrFromOffset(shapeOffset), shape.length, dtype.code, dtype.bits, dtype.lanes, ctx.deviceType, ctx.deviceId, outPtr));
                     const ret = new NDArray(this.memory.loadPointer(outPtr), false, this.lib);
                     this.lib.recycleCallStack(stack);
                     return ret;
@@ -1601,7 +1601,7 @@
                  * @param ctx The execution context of the graph.
                  */
             createGraphRuntime(graphJson, lib, ctx) {
-                    const fcreate = this.getGlobalFunc("lre.graph_runtime.create");
+                    const fcreate = this.getGlobalFunc("tvm.graph_runtime.create");
                     const module = fcreate(graphJson, lib, this.scalar(ctx.deviceType, "int32"), this.scalar(ctx.deviceId, "int32"));
                     return new GraphRuntime(module);
                 }
@@ -1689,7 +1689,7 @@
                     const outOffset = stack.allocPtrArray(1);
                     const outPtr = stack.ptrFromOffset(outOffset);
                     this.lib.checkCall(this.exports
-                        .LREWasmFuncCreateFromCFunc(findex, outPtr));
+                        .TVMWasmFuncCreateFromCFunc(findex, outPtr));
                     const ret = this.makePackedFunc(this.memory.loadPointer(outPtr));
                     this.lib.recycleCallStack(stack);
                     return ret;
@@ -1707,11 +1707,11 @@
                 for (let i = 0; i < args.length; ++i) {
                     let val = args[i];
                     const tp = typeof val;
-                    const valueOffset = argsValue + i * 8 /* LREValue */ ;
+                    const valueOffset = argsValue + i * 8 /* TVMValue */ ;
                     const codeOffset = argsCode + i * 4 /* I32 */ ;
                     if (val instanceof NDArray) {
                         stack.storePtr(valueOffset, val.handle);
-                        stack.storeI32(codeOffset, 13 /* LRENDArrayHandle */ );
+                        stack.storeI32(codeOffset, 13 /* TVMNDArrayHandle */ );
                     } else if (val instanceof Scalar) {
                         if (val.dtype.startsWith("int") || val.dtype.startsWith("uint")) {
                             stack.storeI64(valueOffset, val.value);
@@ -1722,36 +1722,36 @@
                         } else {
                             support.assert(val.dtype == "handle", "Expect handle");
                             stack.storePtr(valueOffset, val.value);
-                            stack.storeI32(codeOffset, 3 /* LREOpaqueHandle */ );
+                            stack.storeI32(codeOffset, 3 /* TVMOpaqueHandle */ );
                         }
                     } else if (val instanceof DLContext) {
                         stack.storeI32(valueOffset, val.deviceType);
                         stack.storeI32(valueOffset + 4 /* I32 */ , val.deviceType);
-                        stack.storeI32(codeOffset, 6 /* LREContext */ );
+                        stack.storeI32(codeOffset, 6 /* TVMContext */ );
                     } else if (tp == "number") {
                         stack.storeF64(valueOffset, val);
                         stack.storeI32(codeOffset, 2 /* Float */ );
                         // eslint-disable-next-line no-prototype-builtins
-                    } else if (tp == "function" && val.hasOwnProperty("_lrePackedCell")) {
-                        stack.storePtr(valueOffset, val._lrePackedCell.handle);
-                        stack.storeI32(codeOffset, 10 /* LREPackedFuncHandle */ );
+                    } else if (tp == "function" && val.hasOwnProperty("_tvmPackedCell")) {
+                        stack.storePtr(valueOffset, val._tvmPackedCell.handle);
+                        stack.storeI32(codeOffset, 10 /* TVMPackedFuncHandle */ );
                     } else if (val === null || val == undefined) {
                         stack.storePtr(valueOffset, 0);
                         stack.storeI32(codeOffset, 4 /* Null */ );
                     } else if (tp == "string") {
                         stack.allocThenSetArgString(valueOffset, val);
-                        stack.storeI32(codeOffset, 11 /* LREStr */ );
+                        stack.storeI32(codeOffset, 11 /* TVMStr */ );
                     } else if (val instanceof Uint8Array) {
                         stack.allocThenSetArgBytes(valueOffset, val);
-                        stack.storeI32(codeOffset, 12 /* LREBytes */ );
+                        stack.storeI32(codeOffset, 12 /* TVMBytes */ );
                     } else if (val instanceof Function) {
                         val = this.toPackedFunc(val);
                         stack.tempArgs.push(val);
-                        stack.storePtr(valueOffset, val._lrePackedCell.handle);
-                        stack.storeI32(codeOffset, 10 /* LREPackedFuncHandle */ );
+                        stack.storePtr(valueOffset, val._tvmPackedCell.handle);
+                        stack.storeI32(codeOffset, 10 /* TVMPackedFuncHandle */ );
                     } else if (val instanceof Module) {
                         stack.storePtr(valueOffset, val.handle);
-                        stack.storeI32(codeOffset, 9 /* LREModuleHandle */ );
+                        stack.storeI32(codeOffset, 9 /* TVMModuleHandle */ );
                     } else {
                         throw new Error("Unsupported argument type " + tp);
                     }
@@ -1764,14 +1764,14 @@
                     _handle) => {
                     const jsArgs = [];
                     for (let i = 0; i < nargs; ++i) {
-                        const valuePtr = argValues + i * 8 /* LREValue */ ;
+                        const valuePtr = argValues + i * 8 /* TVMValue */ ;
                         const codePtr = argCodes + i * 4 /* I32 */ ;
                         let tcode = lib.memory.loadI32(codePtr);
-                        if (tcode == 8 /* LREObjectHandle */ ||
-                            tcode == 14 /* LREObjectRValueRefArg */ ||
-                            tcode == 10 /* LREPackedFuncHandle */ ||
-                            tcode == 9 /* LREModuleHandle */ ) {
-                            lib.checkCall(lib.exports.LRECbArgToReturn(valuePtr, codePtr));
+                        if (tcode == 8 /* TVMObjectHandle */ ||
+                            tcode == 14 /* TVMObjectRValueRefArg */ ||
+                            tcode == 10 /* TVMPackedFuncHandle */ ||
+                            tcode == 9 /* TVMModuleHandle */ ) {
+                            lib.checkCall(lib.exports.TVMCbArgToReturn(valuePtr, codePtr));
                         }
                         tcode = lib.memory.loadI32(codePtr);
                         jsArgs.push(this.retValueToJS(valuePtr, tcode, true));
@@ -1779,13 +1779,13 @@
                     const rv = func(...jsArgs);
                     if (rv !== undefined && rv !== null) {
                         const stack = lib.getOrAllocCallStack();
-                        const valueOffset = stack.allocRawBytes(8 /* LREValue */ );
+                        const valueOffset = stack.allocRawBytes(8 /* TVMValue */ );
                         const codeOffset = stack.allocRawBytes(4 /* I32 */ );
                         this.setPackedArguments(stack, [rv], valueOffset, codeOffset);
                         const valuePtr = stack.ptrFromOffset(valueOffset);
                         const codePtr = stack.ptrFromOffset(codeOffset);
                         stack.commitToWasmMemory();
-                        lib.checkCall(lib.exports.LRECFuncSetReturn(ret, valuePtr, codePtr, 1));
+                        lib.checkCall(lib.exports.TVMCFuncSetReturn(ret, valuePtr, codePtr, 1));
                         lib.recycleCallStack(stack);
                     }
                     return 0;
@@ -1795,16 +1795,16 @@
                 const cell = new PackedFuncCell(handle, this.lib);
                 const packedFunc = (...args) => {
                     const stack = this.lib.getOrAllocCallStack();
-                    const valueOffset = stack.allocRawBytes(8 /* LREValue */ * args.length);
+                    const valueOffset = stack.allocRawBytes(8 /* TVMValue */ * args.length);
                     const tcodeOffset = stack.allocRawBytes(4 /* I32 */ * args.length);
                     this.setPackedArguments(stack, args, valueOffset, tcodeOffset);
-                    const rvalueOffset = stack.allocRawBytes(8 /* LREValue */ );
+                    const rvalueOffset = stack.allocRawBytes(8 /* TVMValue */ );
                     const rcodeOffset = stack.allocRawBytes(4 /* I32 */ );
                     const rvaluePtr = stack.ptrFromOffset(rvalueOffset);
                     const rcodePtr = stack.ptrFromOffset(rcodeOffset);
                     // commit to wasm memory, till rvalueOffset (the return value don't need to be committed)
                     stack.commitToWasmMemory(rvalueOffset);
-                    this.lib.checkCall(this.exports.LREFuncCall(handle, stack.ptrFromOffset(valueOffset), stack.ptrFromOffset(tcodeOffset), args.length, rvaluePtr, rcodePtr));
+                    this.lib.checkCall(this.exports.TVMFuncCall(handle, stack.ptrFromOffset(valueOffset), stack.ptrFromOffset(tcodeOffset), args.length, rvaluePtr, rcodePtr));
                     const ret = this.retValueToJS(rvaluePtr, this.memory.loadI32(rcodePtr), false);
                     this.lib.recycleCallStack(stack);
                     return ret;
@@ -1815,7 +1815,7 @@
                 ret.dispose = () => {
                     cell.dispose();
                 };
-                ret._lrePackedCell = cell;
+                ret._tvmPackedCell = cell;
                 return ret;
             }
             retValueToJS(rvaluePtr, tcode, callbackArg) {
@@ -1825,24 +1825,24 @@
                         return this.memory.loadI64(rvaluePtr);
                     case 2 /* Float */ :
                         return this.memory.loadF64(rvaluePtr);
-                    case 3 /* LREOpaqueHandle */ :
+                    case 3 /* TVMOpaqueHandle */ :
                         {
                             return this.memory.loadPointer(rvaluePtr);
                         }
-                    case 13 /* LRENDArrayHandle */ :
+                    case 13 /* TVMNDArrayHandle */ :
                         {
                             return new NDArray(this.memory.loadPointer(rvaluePtr), false, this.lib);
                         }
-                    case 7 /* LREDLTensorHandle */ :
+                    case 7 /* TVMDLTensorHandle */ :
                         {
                             support.assert(callbackArg);
                             return new NDArray(this.memory.loadPointer(rvaluePtr), true, this.lib);
                         }
-                    case 10 /* LREPackedFuncHandle */ :
+                    case 10 /* TVMPackedFuncHandle */ :
                         {
                             return this.makePackedFunc(this.memory.loadPointer(rvaluePtr));
                         }
-                    case 9 /* LREModuleHandle */ :
+                    case 9 /* TVMModuleHandle */ :
                         {
                             return new Module(this.memory.loadPointer(rvaluePtr), this.lib, (ptr) => {
                                 return this.makePackedFunc(ptr);
@@ -1850,20 +1850,20 @@
                         }
                     case 4 /* Null */ :
                         return undefined;
-                    case 6 /* LREContext */ :
+                    case 6 /* TVMContext */ :
                         {
                             const deviceType = this.memory.loadI32(rvaluePtr);
                             const deviceId = this.memory.loadI32(rvaluePtr + 4 /* I32 */ );
                             return this.context(deviceType, deviceId);
                         }
-                    case 11 /* LREStr */ :
+                    case 11 /* TVMStr */ :
                         {
                             const ret = this.memory.loadCString(this.memory.loadPointer(rvaluePtr));
                             return ret;
                         }
-                    case 12 /* LREBytes */ :
+                    case 12 /* TVMBytes */ :
                         {
-                            return this.memory.loadLREBytes(this.memory.loadPointer(rvaluePtr));
+                            return this.memory.loadTVMBytes(this.memory.loadPointer(rvaluePtr));
                         }
                     default:
                         throw new Error("Unsupported return type code=" + tcode);
@@ -1884,6 +1884,7 @@
          * @param logger The system logger.
          */
         function instantiate(bufferSource, importObject = {}, logger = console.log) {
+            console.log('here')
             const env = new environment.Environment(importObject, logger);
             return WebAssembly.instantiate(bufferSource, env.imports).then((result) => {
                 return new Instance(result.module, {}, result.instance, env);
@@ -2109,10 +2110,10 @@
                         }
                         for (let i = 0; i < nargs; ++i) {
                             const tcode = tcodes[i];
-                            if (tcode == 11 /* LREStr */ ) {
+                            if (tcode == 11 /* TVMStr */ ) {
                                 const str = support.Uint8ArrayToString(reader.readByteArray());
                                 args.push(str);
-                            } else if (tcode == 12 /* LREBytes */ ) {
+                            } else if (tcode == 12 /* TVMBytes */ ) {
                                 args.push(reader.readByteArray());
                             } else {
                                 throw new Error("cannot support type code " + tcode);
@@ -2216,7 +2217,7 @@
                 const reader = new ByteStreamReader(this.readFromBuffer(4 /* I32 */ * 2));
                 const magic = reader.readU32();
                 if (magic == RPC_MAGIC + 1) {
-                    throw new Error("key: " + this.key + " has already been used in proxy");
+                    throw new Error("key: " + this.key + " has atvmady been used in proxy");
                 } else if (magic == RPC_MAGIC + 2) {
                     throw new Error("RPCProxy do not have matching client key " + this.key);
                 }

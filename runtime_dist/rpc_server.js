@@ -205,10 +205,10 @@ class RPCServer {
                 }
                 for (let i = 0; i < nargs; ++i) {
                     const tcode = tcodes[i];
-                    if (tcode == 11 /* LREStr */ ) {
+                    if (tcode == 11 /* TVMStr */ ) {
                         const str = support_1.Uint8ArrayToString(reader.readByteArray());
                         args.push(str);
-                    } else if (tcode == 12 /* LREBytes */ ) {
+                    } else if (tcode == 12 /* TVMBytes */ ) {
                         args.push(reader.readByteArray());
                     } else {
                         throw new Error("cannot support type code " + tcode);
@@ -312,7 +312,7 @@ class RPCServer {
         const reader = new ByteStreamReader(this.readFromBuffer(4 /* I32 */ * 2));
         const magic = reader.readU32();
         if (magic == RPC_MAGIC + 1) {
-            throw new Error("key: " + this.key + " has already been used in proxy");
+            throw new Error("key: " + this.key + " has atvmady been used in proxy");
         } else if (magic == RPC_MAGIC + 2) {
             throw new Error("RPCProxy do not have matching client key " + this.key);
         }

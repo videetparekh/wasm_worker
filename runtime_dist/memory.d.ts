@@ -35,11 +35,11 @@ export declare class Memory {
      */
     loadRawBytes(ptr: Pointer, numBytes: number): Uint8Array;
     /**
-     * Load LREByteArray from ptr.
+     * Load TVMByteArray from ptr.
      *
      * @param ptr The address of the header.
      */
-    loadLREBytes(ptr: Pointer): Uint8Array;
+    loadTVMBytes(ptr: Pointer): Uint8Array;
     /**
      * Load null-terminated C-string from ptr.
      * @param ptr The head address
@@ -80,7 +80,7 @@ export declare class CachedCallStack implements Disposable {
     private stackTop;
     private basePtr;
     private addressToSetTargetValue;
-    constructor(memory: Memory, allocSpace: ctypes.FLREWasmAllocSpace, freeSpace: ctypes.FLREWasmFreeSpace);
+    constructor(memory: Memory, allocSpace: ctypes.FTVMWasmAllocSpace, freeSpace: ctypes.FTVMWasmFreeSpace);
     dispose(): void;
     /**
      * Rest the call stack so that it can be reused again.
@@ -130,7 +130,7 @@ export declare class CachedCallStack implements Disposable {
      */
     allocThenSetArgString(offset: PtrOffset, data: string): void;
     /**
-     * Allocate then set the argument location with a LREByteArray.
+     * Allocate then set the argument location with a TVMByteArray.
      * Allocate new temporary space for bytes.
      *
      * @param offset The offset to set ot data pointer.

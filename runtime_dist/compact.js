@@ -23,16 +23,16 @@ exports.createWebSocket = exports.getPeformance = void 0;
 /**
  * Get performance masurement.
  */
-// function getPeformance() {
-//     if (typeof performance == "undefined") {
-//         // eslint-disable-next-line @typescript-eslint/no-var-requires
-//         const performanceNode = require("perf_hooks");
-//         return performanceNode.performance;
-//     } else {
-//         return performance;
-//     }
-// }
-// exports.getPeformance = getPeformance;
+function getPeformance() {
+    if (typeof performance == "undefined") {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const performanceNode = require("performance-now");
+        return performanceNode.performance;
+    } else {
+        return performance;
+    }
+}
+exports.getPeformance = getPeformance;
 /**
  * Create a new websocket for a given URL
  * @param url The url.

@@ -6,128 +6,128 @@ export declare type Pointer = number;
 /** A pointer offset, need to add a base address to get a valid ptr. */
 export declare type PtrOffset = number;
 /**
- * const char *LREGetLastError();
+ * const char *TVMGetLastError();
  */
-export declare type FLREGetLastError = () => Pointer;
+export declare type FTVMGetLastError = () => Pointer;
 /**
- * int LREModGetFunction(LREModuleHandle mod,
+ * int TVMModGetFunction(TVMModuleHandle mod,
  *                       const char* func_name,
  *                       int query_imports,
- *                       LREFunctionHandle *out);
+ *                       TVMFunctionHandle *out);
  */
-export declare type FLREModGetFunction = (mod: Pointer, funcName: Pointer, queryImports: number, out: Pointer) => number;
+export declare type FTVMModGetFunction = (mod: Pointer, funcName: Pointer, queryImports: number, out: Pointer) => number;
 /**
- * int LREModImport(LREModuleHandle mod,
- *                  LREModuleHandle dep);
+ * int TVMModImport(TVMModuleHandle mod,
+ *                  TVMModuleHandle dep);
  */
-export declare type FLREModImport = (mod: Pointer, dep: Pointer) => number;
+export declare type FTVMModImport = (mod: Pointer, dep: Pointer) => number;
 /**
- * int LREModFree(LREModuleHandle mod);
+ * int TVMModFree(TVMModuleHandle mod);
  */
-export declare type FLREModFree = (mod: Pointer) => number;
+export declare type FTVMModFree = (mod: Pointer) => number;
 /**
- * int LREFuncFree(LREFunctionHandle func);
+ * int TVMFuncFree(TVMFunctionHandle func);
  */
-export declare type FLREFuncFree = (func: Pointer) => number;
+export declare type FTVMFuncFree = (func: Pointer) => number;
 /**
- * int LREFuncCall(LREFunctionHandle func,
- *                 LREValue* arg_values,
+ * int TVMFuncCall(TVMFunctionHandle func,
+ *                 TVMValue* arg_values,
  *                 int* type_codes,
  *                 int num_args,
- *                 LREValue* ret_val,
+ *                 TVMValue* ret_val,
  *                 int* ret_type_code);
  */
-export declare type FLREFuncCall = (func: Pointer, argValues: Pointer, typeCode: Pointer, nargs: number, retValue: Pointer, retCode: Pointer) => number;
+export declare type FTVMFuncCall = (func: Pointer, argValues: Pointer, typeCode: Pointer, nargs: number, retValue: Pointer, retCode: Pointer) => number;
 /**
- * int LRECFuncSetReturn(LRERetValueHandle ret,
- *                       LREValue* value,
+ * int TVMCFuncSetReturn(TVMRetValueHandle ret,
+ *                       TVMValue* value,
  *                       int* type_code,
  *                       int num_ret);
  */
-export declare type FLRECFuncSetReturn = (ret: Pointer, value: Pointer, typeCode: Pointer, numRet: number) => number;
+export declare type FTVMCFuncSetReturn = (ret: Pointer, value: Pointer, typeCode: Pointer, numRet: number) => number;
 /**
- * int LRECbArgToReturn(LREValue* value, int* code);
+ * int TVMCbArgToReturn(TVMValue* value, int* code);
  */
-export declare type FLRECbArgToReturn = (value: Pointer, code: Pointer) => number;
+export declare type FTVMCbArgToReturn = (value: Pointer, code: Pointer) => number;
 /**
- * int LREFuncListGlobalNames(int* outSize, const char*** outArray);
+ * int TVMFuncListGlobalNames(int* outSize, const char*** outArray);
  */
-export declare type FLREFuncListGlobalNames = (outSize: Pointer, outArray: Pointer) => number;
+export declare type FTVMFuncListGlobalNames = (outSize: Pointer, outArray: Pointer) => number;
 /**
- * int LREFuncRegisterGlobal(
- *    const char* name, LREFunctionHandle f, int override);
+ * int TVMFuncRegisterGlobal(
+ *    const char* name, TVMFunctionHandle f, int override);
  */
-export declare type FLREFuncRegisterGlobal = (name: Pointer, f: Pointer, override: number) => number;
+export declare type FTVMFuncRegisterGlobal = (name: Pointer, f: Pointer, override: number) => number;
 /**
- *int LREFuncGetGlobal(const char* name, LREFunctionHandle* out);
+ *int TVMFuncGetGlobal(const char* name, TVMFunctionHandle* out);
     */
-export declare type FLREFuncGetGlobal = (name: Pointer, out: Pointer) => number;
+export declare type FTVMFuncGetGlobal = (name: Pointer, out: Pointer) => number;
 /**
- * int LREArrayAlloc(const lre_index_t* shape,
+ * int TVMArrayAlloc(const tvm_index_t* shape,
  *                   int ndim,
  *                   int dtype_code,
  *                   int dtype_bits,
  *                   int dtype_lanes,
  *                   int device_type,
  *                   int device_id,
- *                   LREArrayHandle* out);
+ *                   TVMArrayHandle* out);
  */
-export declare type FLREArrayAlloc = (shape: Pointer, ndim: number, dtypeCode: number, dtypeBits: number, dtypeLanes: number, deviceType: number, deviceId: number, out: Pointer) => number;
+export declare type FTVMArrayAlloc = (shape: Pointer, ndim: number, dtypeCode: number, dtypeBits: number, dtypeLanes: number, deviceType: number, deviceId: number, out: Pointer) => number;
 /**
- * int LREArrayFree(LREArrayHandle handle);
+ * int TVMArrayFree(TVMArrayHandle handle);
  */
-export declare type FLREArrayFree = (handle: Pointer) => number;
+export declare type FTVMArrayFree = (handle: Pointer) => number;
 /**
- * int LREArrayCopyFromBytes(LREArrayHandle handle,
+ * int TVMArrayCopyFromBytes(TVMArrayHandle handle,
  *                           void* data,
  *                           size_t nbytes);
  */
-export declare type FLREArrayCopyFromBytes = (handle: Pointer, data: Pointer, nbytes: number) => number;
+export declare type FTVMArrayCopyFromBytes = (handle: Pointer, data: Pointer, nbytes: number) => number;
 /**
- * int LREArrayCopyToBytes(LREArrayHandle handle,
+ * int TVMArrayCopyToBytes(TVMArrayHandle handle,
  *                         void* data,
  *                         size_t nbytes);
  */
-export declare type FLREArrayCopyToBytes = (handle: Pointer, data: Pointer, nbytes: number) => number;
+export declare type FTVMArrayCopyToBytes = (handle: Pointer, data: Pointer, nbytes: number) => number;
 /**
- * int LREArrayCopyFromTo(LREArrayHandle from,
- *                        LREArrayHandle to,
- *                        LREStreamHandle stream);
+ * int TVMArrayCopyFromTo(TVMArrayHandle from,
+ *                        TVMArrayHandle to,
+ *                        TVMStreamHandle stream);
  */
-export declare type FLREArrayCopyFromTo = (from: Pointer, to: Pointer, stream: Pointer) => number;
+export declare type FTVMArrayCopyFromTo = (from: Pointer, to: Pointer, stream: Pointer) => number;
 /**
- * int LRESynchronize(int device_type, int device_id, LREStreamHandle stream);
+ * int TVMSynchronize(int device_type, int device_id, TVMStreamHandle stream);
  */
-export declare type FLRESynchronize = (deviceType: number, deviceId: number, stream: Pointer) => number;
+export declare type FTVMSynchronize = (deviceType: number, deviceId: number, stream: Pointer) => number;
 /**
- * typedef int (*LREBackendPackedCFunc)(LREValue* args,
+ * typedef int (*TVMBackendPackedCFunc)(TVMValue* args,
  *                                      int* type_codes,
  *                                      int num_args,
- *                                      LREValue* out_ret_value,
+ *                                      TVMValue* out_ret_value,
  *                                      int* out_ret_tcode);
  */
-export declare type FLREBackendPackedCFunc = (argValues: Pointer, argCodes: Pointer, nargs: number, outValue: Pointer, outCode: Pointer) => number;
-/** void* LREWasmAllocSpace(int size); */
-export declare type FLREWasmAllocSpace = (size: number) => Pointer;
-/** void LREWasmFreeSpace(void* data); */
-export declare type FLREWasmFreeSpace = (ptr: Pointer) => void;
+export declare type FTVMBackendPackedCFunc = (argValues: Pointer, argCodes: Pointer, nargs: number, outValue: Pointer, outCode: Pointer) => number;
+/** void* TVMWasmAllocSpace(int size); */
+export declare type FTVMWasmAllocSpace = (size: number) => Pointer;
+/** void TVMWasmFreeSpace(void* data); */
+export declare type FTVMWasmFreeSpace = (ptr: Pointer) => void;
 /**
- * int LREWasmPackedCFunc(LREValue* args,
+ * int TVMWasmPackedCFunc(TVMValue* args,
  *                        int* type_codes,
  *                        int num_args,
- *                        LRERetValueHandle ret,
+ *                        TVMRetValueHandle ret,
  *                        void* resource_handle);
  */
-export declare type FLREWasmPackedCFunc = (args: Pointer, typeCodes: Pointer, nargs: number, ret: Pointer, resourceHandle: Pointer) => number;
+export declare type FTVMWasmPackedCFunc = (args: Pointer, typeCodes: Pointer, nargs: number, ret: Pointer, resourceHandle: Pointer) => number;
 /**
- * int LREWasmFuncCreateFromCFunc(void* resource_handle,
- *                                LREFunctionHandle *out);
+ * int TVMWasmFuncCreateFromCFunc(void* resource_handle,
+ *                                TVMFunctionHandle *out);
  */
-export declare type FLREWasmFuncCreateFromCFunc = (resource: Pointer, out: Pointer) => number;
+export declare type FTVMWasmFuncCreateFromCFunc = (resource: Pointer, out: Pointer) => number;
 /**
- * void LREWasmPackedCFuncFinalizer(void* resource_handle);
+ * void TVMWasmPackedCFuncFinalizer(void* resource_handle);
  */
-export declare type FLREWasmPackedCFuncFinalizer = (resourceHandle: Pointer) => void;
+export declare type FTVMWasmPackedCFuncFinalizer = (resourceHandle: Pointer) => void;
 /**
  * Size of common data types.
  */
@@ -138,27 +138,27 @@ export declare const enum SizeOf {
     I64 = 8,
     F32 = 4,
     F64 = 8,
-    LREValue = 8,
+    TVMValue = 8,
     DLDataType = 4,
     DLContext = 8
 }
 /**
- * Type code in LRE FFI.
+ * Type code in TVM FFI.
  */
 export declare const enum TypeCode {
     Int = 0,
     UInt = 1,
     Float = 2,
-    LREOpaqueHandle = 3,
+    TVMOpaqueHandle = 3,
     Null = 4,
-    LREDataType = 5,
-    LREContext = 6,
-    LREDLTensorHandle = 7,
-    LREObjectHandle = 8,
-    LREModuleHandle = 9,
-    LREPackedFuncHandle = 10,
-    LREStr = 11,
-    LREBytes = 12,
-    LRENDArrayHandle = 13,
-    LREObjectRValueRefArg = 14
+    TVMDataType = 5,
+    TVMContext = 6,
+    TVMDLTensorHandle = 7,
+    TVMObjectHandle = 8,
+    TVMModuleHandle = 9,
+    TVMPackedFuncHandle = 10,
+    TVMStr = 11,
+    TVMBytes = 12,
+    TVMNDArrayHandle = 13,
+    TVMObjectRValueRefArg = 14
 }

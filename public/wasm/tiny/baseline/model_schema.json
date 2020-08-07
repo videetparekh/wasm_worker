@@ -1,8 +1,0 @@
-{
-    "dataset": "custom",
-    "input_names": "MobilenetV2/input",
-    "input_shapes": "1,96,96,3",
-    "output_names": "MobilenetV2/Predictions/Reshape_1",
-    "preprocessor": "imagenet",
-    "task": "classifier"
-}

@@ -98,11 +98,11 @@ class Memory {
             return result;
         }
         /**
-         * Load LREByteArray from ptr.
+         * Load TVMByteArray from ptr.
          *
          * @param ptr The address of the header.
          */
-    loadLREBytes(ptr) {
+    loadTVMBytes(ptr) {
             const data = this.loadPointer(ptr);
             const length = this.loadUSize(ptr + this.sizeofPtr());
             return this.loadRawBytes(data, length);
@@ -301,7 +301,7 @@ class CachedCallStack {
             this.addressToSetTargetValue.push([offset, strOffset]);
         }
         /**
-         * Allocate then set the argument location with a LREByteArray.
+         * Allocate then set the argument location with a TVMByteArray.
          * Allocate new temporary space for bytes.
          *
          * @param offset The offset to set ot data pointer.

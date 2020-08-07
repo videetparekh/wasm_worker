@@ -41,8 +41,8 @@ function detectLibraryProvider(importObject) {
 class Environment {
     constructor(importObject = {}, logger = console.log) {
             /**
-             * Maintains a table of FLREWasmPackedCFunc that the C part
-             * can call via LREWasmPackedCFunc.
+             * Maintains a table of FTVMWasmPackedCFunc that the C part
+             * can call via TVMWasmPackedCFunc.
              *
              * We maintain a separate table so that we can have un-limited amount
              * of functions that do not maps to the address space.
@@ -88,8 +88,8 @@ class Environment {
             this.packedCFuncTableFreeId.push(resourceHandle);
         };
         const newEnv = {
-            LREWasmPackedCFunc: wasmPackedCFunc,
-            LREWasmPackedCFuncFinalizer: wasmPackedCFuncFinalizer,
+            TVMWasmPackedCFunc: wasmPackedCFunc,
+            TVMWasmPackedCFuncFinalizer: wasmPackedCFuncFinalizer,
             "__console_log": (msg) => {
                 this.logger(msg);
             }

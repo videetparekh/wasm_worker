@@ -29,10 +29,11 @@ async function handleRequest({ request }) {
                   Upload an image (JPEG or PNG):
                   <input type="file" onchange="post()"/>
 
-                  <script>
+                  <script> 
                     function post() {
                       var file = document.querySelector('input[type=file]').files[0];
                       var reader = new FileReader();
+                      var responses = [];
 
                       reader.addEventListener('load', function () {
                         let imgEl = document.getElementById("img_el");
@@ -41,27 +42,26 @@ async function handleRequest({ request }) {
                         imgEl.setAttribute("height", 96);
                         document.body.append(imgEl);
                       
-                        fetch(location.href, {
-                          method: "POST",
-                          body: reader.result
-                        })
-                        .then(async function(res) {
-                          if (res.ok) {
-                            console.log("Response ok.")
-                            try {return await res.json()} catch(e){console.log("Failed.", res.text(), e)}
-                          } else {
-                            console.log(await res.text())
-                            document.getElementById("pred").innerText = "Worker exceeded limits."
-                          }
-                        })
-                        .then(pred => {
-                          console.log(pred)
-                          document.getElementById("pred").innerText = "Prediction: " + pred.label
-                          document.getElementById("model-time").innerText = "Model Load time: " + pred["model-time"]
-                          document.getElementById("inf-time").innerText = "Inference time: " + pred["inf-time"]
-                        });
+                        for (var i=0;i<50;i++) {
+                          fetch(location.href, {
+                            method: "POST",
+                            body: reader.result
+                          })
+                          .then(async function(res) {
+                            return res.json()
+                          })
+                          .then(pred => {
+                            // console.log(pred)
+                            responses.push(pred)
+                            // document.getElementById("pred").innerText = "Prediction: " + pred["label"]
+                            // document.getElementById("model-time").innerText = "Model Load time: " + pred["loadtime"] + "ms"
+                            // document.getElementById("inf-time").innerText = "Inference time: " + pred["inftime"] + "ms"
+                            // document.getElementById("total-time").innerText = "Total time: " + pred["totaltime"] + "ms"
+                            document.getElementById("resp").innerText = JSON.stringify(responses)
+                            });
+                        }
                       }, false);
-
+                        
                       if (file) {reader.readAsDataURL(file);}
                     }
                   </script>
@@ -69,6 +69,8 @@ async function handleRequest({ request }) {
                   <p id ="pred"></p>
                   <p id="model-time"></p>
                   <p id="inf-time"></p>
+                  <p id="total-time"></p>
+                  <p id="resp"></p>
                 </body>
               </html>
             `)
@@ -76,34 +78,36 @@ async function handleRequest({ request }) {
             return res
 
         } else if (request.method === 'POST') {
+            var start = now()
+            var status = null
+            var resp_obj;
             // Tiny Model - ENFORCED (For Now)
             const modelType = 'tiny'
             const variantType = 'baseline'
             var modelInfo = models.collectModel(modelType, variantType) // Refactor to support Selection of Model Variant
-            var labels = await utils.getLabels(modelInfo["labels"])
-
-            //
-            // Load Runtime - Needs to be updated to support loading TVM correctly!!!!! 
-            //
-            var [classifier, loadtime] = await runtime.lreSetup(modelInfo) // Multiple Inference - Single Load
-
-            //
-            //
-            //
-
+            var synset = await utils.getLabels(modelInfo["labels"])
             const base64String = await request.text()
             const [dtype, data] = base64String.split(",")
             let rawImgData = null
+            console.log('here')
             if (dtype === 'data:image/jpeg;base64') {
                 rawImgData = jpeg.decode(preproc.base64ToArrayBuffer(data))
             }
-            var processedImage = modelInfo["preprocessor"](rawImgData)
+            status = "decoded"
 
-            var label = await classifier.classify(processedImage)
-            resp_obj = { "label": labels[label], "loadtime": loadtime.reduce((a, b) => a + b, 0), "inftime": inftime }
+
+            var status = "preprocessed"
+            await runtime.invoke(modelInfo, rawImgData).then(obj => {
+                var end = now() - start
+                resp_obj = { "label": synset[obj["label"]], "loadtime": obj["loadtime"].toFixed(7).toString(), "inftime": obj["inftime"].toFixed(7).toString(), "totaltime": end.toFixed(2).toString() }
+                    // resp_obj = { "label": labels[label], "loadtime": loadtime.reduce((a, b) => a + b, 0), "inftime": inftime, "status": status }
+
+            })
             return new Response(JSON.stringify(resp_obj), { status: 200 });
+
         }
     } catch (e) {
         console.log(e)
+        return new Response(JSON.stringify({ "error": e.message }), { status: 200 });
     }
 }

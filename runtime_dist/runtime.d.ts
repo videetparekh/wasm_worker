@@ -1,5 +1,5 @@
 /**
- * LRE JS Wasm Runtime library.
+ * TVM JS Wasm Runtime library.
  */
 import { Pointer, PtrOffset } from "./ctypes";
 import { Disposable } from "./types";
@@ -7,10 +7,10 @@ import { Memory, CachedCallStack } from "./memory";
 import { Environment } from "./environment";
 import { WebGPUContext } from "./webgpu";
 /**
- * Type for PackedFunc inthe LRERuntime.
+ * Type for PackedFunc inthe TVMRuntime.
  */
 export declare type PackedFunc = ((...args: any) => any) & Disposable & {
-    _lrePackedCell: PackedFuncCell;
+    _tvmPackedCell: PackedFuncCell;
 };
 /**
  * @internal
@@ -157,7 +157,7 @@ export declare class Module implements Disposable {
 /**
  *  Graph runtime.
  *
- *  This is a thin wrapper of the underlying LRE module.
+ *  This is a thin wrapper of the underlying TVM module.
  *  you can also directly call set_input, run, and get_output
  *  of underlying module functions
  */
@@ -205,7 +205,7 @@ declare class GraphRuntime implements Disposable {
     benchmarkRuns(ctx: DLContext, number?: number, repeat?: number): Promise<number[]>;
 }
 /**
- * LRE runtime instance.
+ * TVM runtime instance.
  */
 export declare class Instance implements Disposable {
     memory: Memory;
@@ -243,7 +243,7 @@ export declare class Instance implements Disposable {
      */
     listGlobalFuncNames(): Array<string>;
     /**
-     * Register function to be global function in lre runtime.
+     * Register function to be global function in tvm runtime.
      * @param name The name of the function.
      * @param f function to be registered.
      * @param override Whether overwrite function in existing registry.
