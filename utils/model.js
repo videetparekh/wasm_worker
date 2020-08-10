@@ -7,7 +7,7 @@ module.exports = {
 
         modelDatabase = {
             "mobilenetv2": MobileNetv2,
-            "tiny": TinyModel,
+            "tinymodel": TinyModel,
         }
         return modelDatabase[modelType](variantType)
 
@@ -21,10 +21,9 @@ function MobileNetv2(variantType) {
     var modelBase = "https://storage.googleapis.com/mobilenetv2/"
 
     const modelInfo = {
-        "baseline": { "base": modelBase + "baseline/", "input_type": "float32", "preprocessor": preproc.preprocess_imagenet },
-        "reimann": { "base": modelBase + "reimann/", "input_type": "float32", "preprocessor": preproc.preprocess_imagenet },
-        "lorenz_int8": { "base": modelBase + "lorenz_int8/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 },
-        "lorenz_int16": { "base": modelBase + "lorenz_int16/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 }
+        "fp32": { "base": modelBase + "fp32/", "input_type": "float32", "preprocessor": preproc.preprocess_imagenet },
+        "int8": { "base": modelBase + "int8/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 },
+        "int16": { "base": modelBase + "int16/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 }
     }
 
     var modelObj = {
@@ -49,10 +48,9 @@ function TinyModel(variantType) {
     const modelBase = "https://storage.googleapis.com/tinymodel/"
 
     const modelInfo = {
-        "baseline": { "base": modelBase + "baseline/", "input_type": "float32", "preprocessor": preproc.preprocess_imagenet },
-        "reimann": { "base": modelBase + "reimann/", "input_type": "float32", "preprocessor": preproc.preprocess_imagenet },
-        "lorenz_int8": { "base": modelBase + "lorenz_int8/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 },
-        "lorenz_int16": { "base": modelBase + "lorenz_int16/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 }
+        "fp32": { "base": modelBase + "fp32/", "input_type": "float32", "preprocessor": preproc.preprocess_imagenet },
+        "int8": { "base": modelBase + "int8/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 },
+        "int16": { "base": modelBase + "int16/", "input_type": "uint8", "preprocessor": preproc.preprocess_uint8 }
     }
 
     var modelObj = {

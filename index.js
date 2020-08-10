@@ -1,5 +1,5 @@
 // import the emscripten glue code
-import { PNG } from "pngjs/browser"
+import { PNG } from "../tinymodel_int8/node_modules/pngjs/browser"
 import str from 'string-to-stream'
 var jpeg = require('jpeg-js')
 var now = require('performance-now')
@@ -82,8 +82,8 @@ async function handleRequest({ request }) {
             var status = null
             var resp_obj;
             // Tiny Model - ENFORCED (For Now)
-            const modelType = 'tiny'
-            const variantType = 'baseline'
+            const modelType = 'tinymodel'
+            const variantType = 'fp32'
             var modelInfo = models.collectModel(modelType, variantType) // Refactor to support Selection of Model Variant
             var synset = await utils.getLabels(modelInfo["labels"])
             const base64String = await request.text()
@@ -103,11 +103,16 @@ async function handleRequest({ request }) {
                     // resp_obj = { "label": labels[label], "loadtime": loadtime.reduce((a, b) => a + b, 0), "inftime": inftime, "status": status }
 
             })
-            return new Response(JSON.stringify(resp_obj), { status: 200 });
-
+            var response = new Response(JSON.stringify(resp_obj), { status: 200 });
+            response.headers.set('Access-Control-Allow-Origin', "*")
+            response.headers.append('Vary', 'Origin')
+            return response
         }
     } catch (e) {
         console.log(e)
-        return new Response(JSON.stringify({ "error": e.message }), { status: 200 });
+        var response = new Response(JSON.stringify({ "error": e.message }), { status: 200 });
+        response.headers.set('Access-Control-Allow-Origin', new URL(request.url).origin)
+        response.headers.append('Vary', 'Origin')
+        return response
     }
 }

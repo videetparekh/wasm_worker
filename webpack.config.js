@@ -26,7 +26,7 @@ module.exports = {
             // in Workers, rather than being fetched like the browser.
             // wranglerjs also needs to see a wasm file in order for it to be sent to the api
             // correctly.
-            { from: './public/wasm/tiny/baseline/modelLibrary.wasm', to: './worker/module.wasm' },
+            { from: './public/wasm/tiny/fp32/modelLibrary.wasm', to: './worker/module.wasm' },
         ]),
     ],
     module: {

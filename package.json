@@ -1,5 +1,5 @@
 {
-    "name": "wasm_worker",
+    "name": "tinymodel_fp32",
     "version": "1.0.0",
     "description": "A template for kick starting a Cloudflare Workers + Emscripten + Wasm project",
     "main": "index.js",
